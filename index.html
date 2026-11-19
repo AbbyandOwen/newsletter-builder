@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newsletter Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Allura&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, personal, calm — a missionary's own newsletter desk
+   IDEA: a letter-writing desk: the form on the left is the notepad, the live email on the right is the letter
+   PICTURE: the live email preview itself, large and always visible
+   COLOUR and TYPE: the newsletter's own navy #181645 and dusty pink #ceb5c8, tan accent from the header dots; Allura script for the name, Figtree for everything else
+   LAYOUT: sticky action bar, form column + preview column; stacks below 980px */
+:root{color-scheme:light dark;
+  --bg:light-dark(#f6f2f5,#121128);--panel:light-dark(#fff,#1c1a3a);--ink:light-dark(#1b1930,#ece8f2);
+  --muted:light-dark(#6b6680,#a8a2bd);--line:light-dark(#e4dce3,#2f2c55);--navy:#181645;--pink:#ceb5c8;
+  --tan:#c9a68e;--field:light-dark(#fbf9fb,#15142f);--ok:light-dark(#1f7a4d,#6fd3a0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif;overflow-x:clip}
+.bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px max(3vw,16px);background:var(--navy);color:#fff}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font:400 34px/1 Allura,cursive;color:var(--pink)}
+.brand span{font-size:14px;color:#cfc8e6}
+button{font:600 15px Figtree,sans-serif;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid transparent;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--tan);outline-offset:2px}
+.primary{background:var(--pink);color:var(--navy)}
+.primary:hover{background:#dcc7d7}
+.ghost{background:transparent;color:#fff;border-color:#5c5890}
+.ghost:hover{border-color:var(--pink)}
+.wrap{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:28px;padding:24px max(3vw,16px) 60px;max-width:1320px;margin:0 auto}
+.steps{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 22px;margin:0;padding:0;list-style:none;color:var(--muted);font-size:15px}
+.steps li::before{content:attr(data-n);display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--navy);color:var(--pink);font-size:12px;font-weight:700}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 8px;margin-bottom:16px}
+.card h2{margin:0 0 4px;font-size:18px}
+.card .fixed{margin:0 0 12px;font-size:13px;color:var(--muted)}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+.hint{font-weight:400;color:var(--muted)}
+input[type=text],input[type=url],textarea{width:100%;font:16px/1.45 Figtree,sans-serif;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+textarea{resize:vertical;min-height:120px}
+textarea.title{min-height:0;height:auto}
+.photo{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
+.drop{position:relative;aspect-ratio:4/3;border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;overflow:hidden;background:var(--field)}
+.drop.over{border-color:var(--tan)}
+.drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo .side input{margin-bottom:8px}
+.linkbtn{background:none;border:0;padding:0;min-height:32px;color:var(--muted);font:500 14px Figtree,sans-serif;text-decoration:underline;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:4px 16px;margin:-8px 0 12px}
+.previewcol{position:relative}
+.pv{position:sticky;top:84px}
+.pvhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.pvhead h2{margin:0;font-size:18px}
+.pvhead span{font-size:13px;color:var(--muted)}
+.frame{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.frame iframe{display:block;border:0;width:700px;transform-origin:0 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);max-width:min(560px,92vw);background:var(--navy);color:#fff;border:1px solid #5c5890;padding:14px 18px;border-radius:14px;font-size:15px;transition:transform .25s ease;z-index:9}
+.toast.show{transform:translate(-50%,0)}
+.toast b{color:var(--pink)}
+details{margin:0 0 16px;font-size:14px;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600;color:var(--ink);min-height:32px}
+details p{margin:6px 0}
+@media(max-width:980px){.wrap{grid-template-columns:minmax(0,1fr)}.pv{position:static}}
+@media(max-width:600px){.brand span{display:none}.bar button{flex:1 1 auto}.photo{grid-template-columns:96px minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><b>Newsletter</b><span>Abby &amp; Owen's email builder</span></div>
+  <button class="primary" id="copy">Copy for Outlook</button>
+  <button class="ghost" id="code">Copy HTML code</button>
+  <button class="ghost" id="save" hidden>Save .html file</button>
+  <button class="ghost" id="clear">Start a new email</button>
+</header>
+
+<main class="wrap">
+  <ol class="steps">
+    <li data-n="1">Fill in your text and photos</li>
+    <li data-n="2">Press <b>Copy for Outlook</b></li>
+    <li data-n="3">In Outlook, start a new email and press ⌘V (Ctrl+V on Windows)</li>
+  </ol>
+
+  <section class="formcol" aria-label="Email content">
+    <div class="card">
+      <h2>Opening</h2>
+      <p class="fixed">Header, Matthew 28:19 verse and colors stay the same every time.</p>
+      <div class="photo" data-photo="p1">
+        <label class="drop"><span>Add photo 1<br>(click or drop)</span><input type="file" accept="image/*" aria-label="Photo 1"></label>
+        <div class="side">
+          <label>Photo 1 description <span class="hint">(for screen readers)</span></label>
+          <input type="text" data-k="p1alt" placeholder="e.g. Teen Camp 2025 group photo">
+          <button class="linkbtn" data-act="url">Use a photo web link instead</button>
+          <button class="linkbtn" data-act="rm" hidden>Remove photo</button>
+        </div>
+      </div>
+      <label for="t1">Title <span class="hint">(a new line starts a second line)</span></label>
+      <textarea id="t1" class="title" rows="2" data-k="t1"></textarea>
+      <label for="b1">Paragraphs <span class="hint">(leave a blank line between paragraphs)</span></label>
+      <textarea id="b1" rows="9" data-k="b1"></textarea>
+      <div class="row"><button class="linkbtn" data-link="b1">+ Add a link</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Pink section</h2>
+      <p class="fixed">The doodle separator above it stays the same.</p>
+      <div class="photo" data-photo="p2">
+        <label class="drop"><span>Add photo 2<br>(click or drop)</span><input type="file" accept="image/*" aria-label="Photo 2"></label>
+        <div class="side">
+          <label>Photo 2 description</label>
+          <input type="text" data-k="p2alt" placeholder="e.g. My class photo">
+          <button class="linkbtn" data-act="url">Use a photo web link instead</button>
+          <button class="linkbtn" data-act="rm" hidden>Remove photo</button>
+        </div>
+      </div>
+      <label for="t2">Title</label>
+      <textarea id="t2" class="title" rows="2" data-k="t2"></textarea>
+      <label for="b2">Paragraphs</label>
+      <textarea id="b2" rows="7" data-k="b2"></textarea>
+      <div class="row"><button class="linkbtn" data-link="b2">+ Add a link</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Closing section</h2>
+      <p class="fixed">"With gratitude," your signature and the Marco Polo / Support financially links stay the same.</p>
+      <div class="photo" data-photo="p3">
+        <label class="drop"><span>Add photo 3<br>(click or drop)</span><input type="file" accept="image/*" aria-label="Photo 3"></label>
+        <div class="side">
+          <label>Photo 3 description</label>
+          <input type="text" data-k="p3alt" placeholder="e.g. English class">
+          <button class="linkbtn" data-act="url">Use a photo web link instead</button>
+          <button class="linkbtn" data-act="rm" hidden>Remove photo</button>
+        </div>
+      </div>
+      <label for="t3">Title</label>
+      <textarea id="t3" class="title" rows="2" data-k="t3"></textarea>
+      <label for="b3">Paragraphs</label>
+      <textarea id="b3" rows="8" data-k="b3"></textarea>
+      <div class="row"><button class="linkbtn" data-link="b3">+ Add a link</button></div>
+    </div>
+
+    <details>
+      <summary>Tips</summary>
+      <p>Anything you leave empty (a photo, a title, a whole section) is simply left out of the email.</p>
+      <p>Links look like <code>[link text](https://example.com)</code>; the “Add a link” button writes this for you.</p>
+      <p>Send yourself a test first. If a photo doesn't appear after pasting, click its spot in Outlook and use Insert → Picture.</p>
+      <p>Your work is kept in this browser until you press “Start a new email”.</p>
+    </details>
+  </section>
+
+  <section class="previewcol" aria-label="Live preview">
+    <div class="pv">
+      <div class="pvhead"><h2>Live preview</h2><span id="saved">Updates as you type</span></div>
+      <div class="frame" id="frame"><iframe id="pv" title="Email preview" scrolling="no"></iframe></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+{
+const REMOTE='https://proofs.advisorsexcel.com/2023/charity/abby/';
+const IMG={send:{header:REMOTE+'abby-header.png',sep1:REMOTE+'doodle-separator.jpg',sep2:REMOTE+'separator.jpg',sig:REMOTE+'abby-signature.png'},
+  preview:{header:'img/header.jpg',sep1:'img/separator-1.jpg',sep2:'img/separator-2.jpg',sig:'img/signature.jpg'}};
+const KEY='abby-newsletter-builder-v1';
+const SAMPLE={t1:"Here it is!\nThe email you've been waiting for.",
+b1:"Do you like the new look? It was created by my friend Hannah, and I'm so thankful for her generous support.\n\nThank you for your partnership and encouragement in the journey God has invited us on together. Your investment in Czech Christians and non-Christians has produced much joy and encouragement, and I am so grateful for your kindness and faithfulness.\n\nFirst, I want to share the awesome page my organization helped me create. Click the [link](https://give.efca.org/missionaries/abby-holloway-2376) to check it out!",
+t2:"My Teen Camp Class Awkward Family Photo",
+b2:"Second, you have been such an active part of what God is doing in the world, and I want to encourage you to not give that up, whether by continuing to invest together with me or somewhere else.\n\nTo further our work together among the Czech people requires $6,173 of recurring monthly support and $25,966 of one-time start-up costs. Would you be willing to consider how you might invest financially into what God is doing in the Czech Republic?",
+t3:"My Teen Camp English Class",
+b3:"I'd love to chat more about partnering with you in this way, so I will be following up with you over the next month or so.\n\nWould you help me out by responding to this email and letting me know whether or not you would like to have a conversation about financial partnership? If you aren't interested, just let me know, and I'll know not to continue reaching out about it.\n\nThank you again for all you do!",
+p1:'',p2:'',p3:'',p1alt:'',p2alt:'',p3alt:''};
+let S={...SAMPLE};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)S={...SAMPLE,...s}}catch(e){}
+
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const inline=(t,lc)=>esc(t).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,a,u)=>`<a href="${u}" target="_blank" style="color: ${lc};">${a}</a>`).replace(/\n/g,'<br>');
+const paras=(t,lc)=>t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>`<p>${inline(p,lc)}</p>`).join('\n');
+const TXT="font-family: 'Arial', Sans-Serif; font-size: 16px; text-align: center; color: #fff; line-height: 24px; padding: 30px 50px;";
+const H=c=>`color: ${c}; font-size: 19px; text-transform: uppercase; letter-spacing: 2px;`;
+const PIMG='display: block; width: 520px; max-width: 100%; height: auto;';
+const ph=n=>'data:image/svg+xml;base64,'+btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="340"><rect width="520" height="340" fill="#e6e1ec"/><rect x="6" y="6" width="508" height="328" fill="none" stroke="#181645" stroke-width="2" stroke-dasharray="10 7"/><text x="260" y="165" font-family="Arial" font-size="20" font-weight="bold" fill="#181645" text-anchor="middle">PHOTO ${n}</text><text x="260" y="195" font-family="Arial" font-size="14" fill="#181645" text-anchor="middle">No photo yet: this spot is left out of the email</text></svg>`);
+
+function email(mode){
+  const I=IMG[mode],pv=mode==='preview',out=[];
+  const photo=(k,n,td,trs)=>{const src=S[k]||(pv?ph(n):'');if(!src)return'';
+    return `<tr style="${trs}"><td style="${td}"><center><img src="${esc(src)}" alt="${esc(S[k+'alt']||'Photo')}" width="520" style="${PIMG}"></center></td></tr>`};
+  const text=(t,b,hc,lc,bg)=>{if(!t.trim()&&!b.trim())return'';
+    return `<tr style="background-color: ${bg};"><td style="${TXT}">${t.trim()?`<strong style="${H(hc)}">${inline(t.trim(),hc)}</strong><br>`:''}\n${paras(b,lc)}</td></tr>`};
+  out.push(`<tr style="background-color: #181645;"><td style="${TXT}"><strong style="${H('#ceb5c8')}">Matthew 28:19 NIV</strong><br>Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.</td></tr>`);
+  out.push(photo('p1',1,'padding: 0px 50px;','background-color: #181645; line-height: 0;'));
+  out.push(text(S.t1,S.b1,'#ceb5c8','#fff','#181645'));
+  out.push(`<tr style="background-color: #181645; line-height: 0;"><td><center><img src="${I.sep1}" alt="Separator" style="display: block;"></center></td></tr>`);
+  out.push(photo('p2',2,'padding: 30px 50px;','background-color: #ceb5c8;'));
+  out.push(text(S.t2,S.b2,'#181645','#181645','#ceb5c8'));
+  out.push(`<tr style="background-color: #181645;"><td><center><img src="${I.sep2}" alt="Separator" style="display: block;"></center></td></tr>`);
+  out.push(photo('p3',3,'padding: 0px 50px;','background-color: #181645; line-height: 0;'));
+  out.push(text(S.t3,S.b3,'#ceb5c8','#fff','#181645'));
+  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 16px; text-align: center; color: #fff; line-height: 24px; padding: 0px 50px;">With gratitude,</td></tr>`);
+  out.push(`<tr style="background-color: #181645;"><td style="padding: 30px 50px;"><center><img src="${I.sig}" alt="Abby" style="display: block;"></center></td></tr>`);
+  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 15px; font-weight: bold; text-align: center; line-height: 24px; padding: 30px 50px; text-transform: uppercase;"><a href="https://onmarcopolo.com/sharecast/aMm8fa0dL7Dn" target="_blank" style="color: #fff;">Marco Polo</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://give.efca.org/missionaries/abby-holloway-2376" target="_blank" style="color: #fff;">Support financially</a></td></tr>`);
+  const body=`<table width="100%" border="0" cellspacing="0" cellpadding="0"><tbody><tr style="background-color: #fff;"><td style="padding: 50px 0px;">
+<table width="700" border="0" cellspacing="0" cellpadding="0" align="center"><tbody>
+<tr style="line-height: 0;"><td><img src="${I.header}" alt="Abby Holloway" width="700" style="display: block;"></td></tr>
+<tr style="background-color: #fff;"><td><table width="620" border="0" cellspacing="0" cellpadding="0" align="center"><tbody>
+${out.filter(Boolean).join('\n')}
+</tbody></table></td></tr>
+<tr><td style="font-family: 'Arial', Sans-Serif; font-size: 10px; text-align: center; color: #ceb5c8; padding: 30px;">Designed and built by Hannah Kintigh</td></tr>
+</tbody></table></td></tr></tbody></table>`;
+  return {body,doc:`<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n<html>\n<head>\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n<title>Abby Holloway</title>\n</head>\n<body>\n${body}\n</body>\n</html>\n`};
+}
+
+const iframe=document.getElementById('pv'),frame=document.getElementById('frame');
+let scale=1;
+function fit(){const w=frame.clientWidth;scale=Math.min(1,w/700);iframe.style.transform=`scale(${scale})`;
+  try{const h=iframe.contentDocument.documentElement.scrollHeight;iframe.style.height=h+'px';frame.style.height=Math.ceil(h*scale)+'px'}catch(e){}}
+iframe.addEventListener('load',()=>{fit();try{iframe.contentDocument.querySelectorAll('img').forEach(i=>i.addEventListener('load',fit))}catch(e){}});
+const ro=new ResizeObserver(fit);ro.observe(frame);
+let t;
+function render(){clearTimeout(t);t=setTimeout(()=>{const y=window.scrollY;iframe.srcdoc=email('preview').doc.replace('<body>','<body style="margin:0">');window.scrollTo(0,y)},120)}
+const savedEl=document.getElementById('saved');
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S));savedEl.textContent='Saved in this browser'}
+  catch(e){try{localStorage.setItem(KEY,JSON.stringify({...S,p1:S.p1.startsWith('data:')?'':S.p1,p2:S.p2.startsWith('data:')?'':S.p2,p3:S.p3.startsWith('data:')?'':S.p3}));savedEl.textContent='Text saved (photos too large to keep)'}catch(e2){savedEl.textContent='Updates as you type'}}}
+function update(){render();persist()}
+
+document.querySelectorAll('[data-k]').forEach(el=>{el.value=S[el.dataset.k]||'';el.addEventListener('input',()=>{S[el.dataset.k]=el.value;update()})});
+
+function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{
+  const W=Math.min(1040,im.naturalWidth),Hh=Math.round(im.naturalHeight*W/im.naturalWidth),c=document.createElement('canvas');c.width=W;c.height=Hh;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,Hh);x.drawImage(im,0,0,W,Hh);res(c.toDataURL('image/jpeg',0.82))};im.src=r.result};r.readAsDataURL(file)})}
+function showPhoto(box){const k=box.dataset.photo,drop=box.querySelector('.drop'),rm=box.querySelector('[data-act=rm]');
+  drop.querySelector('img')?.remove();if(S[k]){const i=new Image();i.alt='';i.src=S[k];drop.prepend(i)}rm.hidden=!S[k]}
+document.querySelectorAll('[data-photo]').forEach(box=>{const k=box.dataset.photo,drop=box.querySelector('.drop'),inp=drop.querySelector('input');
+  const take=async f=>{if(!f||!f.type.startsWith('image/'))return toast('That file isn\'t a photo.');try{S[k]=await shrink(f);showPhoto(box);update()}catch(e){toast('Sorry, that photo could not be read.')}};
+  inp.addEventListener('change',()=>take(inp.files[0]));
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');take(e.dataTransfer.files[0])});
+  box.querySelector('[data-act=rm]').addEventListener('click',()=>{S[k]='';inp.value='';showPhoto(box);update()});
+  box.querySelector('[data-act=url]').addEventListener('click',()=>openUrl(box));
+  showPhoto(box)});
+
+function openUrl(box){if(box.querySelector('.urlin'))return;const k=box.dataset.photo,w=document.createElement('div');w.className='urlin';
+  w.innerHTML='<input type="url" placeholder="https://… link to a photo" aria-label="Photo web link">';const i=w.firstChild;
+  i.value=S[k]&&!S[k].startsWith('data:')?S[k]:'';box.querySelector('.side').append(w);i.focus();
+  i.addEventListener('input',()=>{const v=i.value.trim();if(!v||/^https?:\/\//.test(v)){S[k]=v;showPhoto(box);update()}})}
+
+document.querySelectorAll('[data-link]').forEach(b=>b.addEventListener('click',()=>{const ta=document.getElementById(b.dataset.link);
+  const s=ta.selectionStart,e=ta.selectionEnd,sel=ta.value.slice(s,e)||'link text',ins=`[${sel}](https://)`;
+  ta.setRangeText(ins,s,e,'end');ta.focus();const p=s+ins.length-1;ta.setSelectionRange(p,p);S[ta.dataset.k]=ta.value;update()}));
+
+const toastEl=document.getElementById('toast');let tt;
+function toast(h){toastEl.innerHTML=h;toastEl.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('show'),6000)}
+
+async function copyRich(){const {body}=email('send'),plain=[S.t1,S.b1,S.t2,S.b2,S.t3,S.b3].join('\n\n');
+  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([body],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);return true}
+  catch(e){const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;width:700px';d.innerHTML=body;document.body.append(d);
+    const r=document.createRange();r.selectNodeContents(d);const s=getSelection();s.removeAllRanges();s.addRange(r);let ok=false;try{ok=document.execCommand('copy')}catch(e2){}
+    s.removeAllRanges();d.remove();return ok}}
+document.getElementById('copy').addEventListener('click',async()=>{
+  const ok=await copyRich();
+  toast(ok?'<b>Copied!</b> Open Outlook, start a new email, click in the message area and press ⌘V (Ctrl+V on Windows). Send yourself a test first.'
+    :'Copying was blocked by this browser. Use <b>Copy HTML code</b>, or open the saved .html file in a browser and copy from there.')});
+document.getElementById('code').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(email('send').doc);toast('<b>HTML code copied.</b> Paste it wherever you need the raw code.')}
+  catch(e){toast('Copying was blocked by this browser.')}});
+document.getElementById('clear').addEventListener('click',()=>{const box=document.getElementById('confirm');if(box){box.remove();return}
+  const c=document.createElement('div');c.id='confirm';c.className='toast show';c.innerHTML='Clear all text and photos for a new email? <button class="primary" style="margin-left:10px">Yes, clear</button> <button class="ghost">Keep</button>';
+  document.body.append(c);const [y,n]=c.querySelectorAll('button');
+  y.onclick=()=>{S={...SAMPLE,t1:'',b1:'',t2:'',b2:'',t3:'',b3:''};document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]||'');
+    document.querySelectorAll('[data-photo]').forEach(b=>{b.querySelector('.urlin')?.remove();showPhoto(b)});update();c.remove()};n.onclick=()=>c.remove()});
+
+(async()=>{const b=document.getElementById('save');b.hidden=false;let dl=null;
+  try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
+  b.addEventListener('click',async()=>{const doc=email('send').doc;
+    if(dl){try{await dl.save({filename:'newsletter.html',data:doc});toast('<b>Saved.</b>')}catch(e){if(e&&e.code!=='declined')toast('The file could not be saved here.')}return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([doc],{type:'text/html'}));a.download='newsletter.html';document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('<b>Saved</b> to your Downloads folder.')})})();
+render();
+}
+</script>
+</body>
+</html>
