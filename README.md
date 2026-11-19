@@ -8,5 +8,4 @@ A one-page tool for writing Abby & Owen's supporter newsletter and pasting it in
 
 Drafts are saved only in the browser you're using; nothing is sent to this site.
 
-The fixed images in `img/` are only for the preview. The email itself loads the original
-header, separators and signature from proofs.advisorsexcel.com.
+The header, separators and signature load from proofs.advisorsexcel.com, as in the original email.
