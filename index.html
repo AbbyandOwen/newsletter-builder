@@ -176,10 +176,12 @@ let S={...SAMPLE};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)S={...SAMPLE,...s}}catch(e){}
 
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const inline=(t,lc)=>esc(t).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,a,u)=>`<a href="${u}" target="_blank" style="color: ${lc};">${a}</a>`).replace(/\n/g,'<br>');
-const paras=(t,lc)=>t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>`<p>${inline(p,lc)}</p>`).join('\n');
+const inline=(t,lc)=>esc(t).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,a,u)=>`<a href="${u}" target="_blank" style="color: ${lc}; font-family: Arial, Helvetica, sans-serif; text-decoration: underline;">${a}</a>`).replace(/\n/g,'<br>');
+const PS=c=>`margin: 16px 0; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 24px; color: ${c}; text-align: center;`;
+const paras=(t,lc,tc)=>t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>`<p style="${PS(tc)}">${inline(p,lc)}</p>`).join('\n');
 const TXT="font-family: 'Arial', Sans-Serif; font-size: 16px; text-align: center; color: #fff; line-height: 24px; padding: 30px 50px;";
-const H=c=>`color: ${c}; font-size: 19px; text-transform: uppercase; letter-spacing: 2px;`;
+const H=c=>`font-family: Arial, Helvetica, sans-serif; font-weight: bold; color: ${c}; font-size: 19px; line-height: 26px; text-transform: uppercase; letter-spacing: 2px;`;
+const SP=(c,s)=>`font-family: Arial, Helvetica, sans-serif; font-size: ${s||16}px; line-height: 24px; color: ${c};`;
 const PIMG='display: block; width: 520px; max-width: 100%; height: auto;';
 const ph=n=>'data:image/svg+xml;base64,'+btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="340"><rect width="520" height="340" fill="#e6e1ec"/><rect x="6" y="6" width="508" height="328" fill="none" stroke="#181645" stroke-width="2" stroke-dasharray="10 7"/><text x="260" y="165" font-family="Arial" font-size="20" font-weight="bold" fill="#181645" text-anchor="middle">PHOTO ${n}</text><text x="260" y="195" font-family="Arial" font-size="14" fill="#181645" text-anchor="middle">No photo yet: this spot is left out of the email</text></svg>`);
 
@@ -188,8 +190,8 @@ function email(mode){
   const photo=(k,n,td,trs)=>{const src=S[k]||(pv?ph(n):'');if(!src)return'';
     return `<tr style="${trs}"><td style="${td}"><center><img src="${esc(src)}" alt="${esc(S[k+'alt']||'Photo')}" width="520" style="${PIMG}"></center></td></tr>`};
   const text=(t,b,hc,lc,bg)=>{if(!t.trim()&&!b.trim())return'';
-    return `<tr style="background-color: ${bg};"><td style="${TXT}">${t.trim()?`<strong style="${H(hc)}">${inline(t.trim(),hc)}</strong><br>`:''}\n${paras(b,lc)}</td></tr>`};
-  out.push(`<tr style="background-color: #181645;"><td style="${TXT}"><strong style="${H('#ceb5c8')}">Matthew 28:19 NIV</strong><br>Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.</td></tr>`);
+    return `<tr style="background-color: ${bg};"><td style="${TXT}">${t.trim()?`<strong style="${H(hc)}">${inline(t.trim(),hc)}</strong><br>`:''}\n${paras(b,lc,'#fff')}</td></tr>`};
+  out.push(`<tr style="background-color: #181645;"><td style="${TXT}"><strong style="${H('#ceb5c8')}">Matthew 28:19 NIV</strong><br><span style="${SP('#fff')}">Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.</span></td></tr>`);
   out.push(photo('p1',1,'padding: 0px 50px;','background-color: #181645; line-height: 0;'));
   out.push(text(S.t1,S.b1,'#ceb5c8','#fff','#181645'));
   out.push(`<tr style="background-color: #181645; line-height: 0;"><td><center><img src="${I.sep1}" alt="Separator" style="display: block;"></center></td></tr>`);
@@ -198,16 +200,16 @@ function email(mode){
   out.push(`<tr style="background-color: #181645;"><td><center><img src="${I.sep2}" alt="Separator" style="display: block;"></center></td></tr>`);
   out.push(photo('p3',3,'padding: 0px 50px;','background-color: #181645; line-height: 0;'));
   out.push(text(S.t3,S.b3,'#ceb5c8','#fff','#181645'));
-  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 16px; text-align: center; color: #fff; line-height: 24px; padding: 0px 50px;">With gratitude,</td></tr>`);
+  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 16px; text-align: center; color: #fff; line-height: 24px; padding: 0px 50px;"><span style="${SP('#fff')}">With gratitude,</span></td></tr>`);
   out.push(`<tr style="background-color: #181645;"><td style="padding: 30px 50px;"><center><img src="${I.sig}" alt="Abby" style="display: block;"></center></td></tr>`);
-  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 15px; font-weight: bold; text-align: center; line-height: 24px; padding: 30px 50px; text-transform: uppercase;"><a href="https://onmarcopolo.com/sharecast/aMm8fa0dL7Dn" target="_blank" style="color: #fff;">Marco Polo</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://give.efca.org/missionaries/abby-holloway-2376" target="_blank" style="color: #fff;">Support financially</a></td></tr>`);
+  out.push(`<tr style="background-color: #181645;"><td style="font-family: 'Arial', Sans-Serif; font-size: 15px; font-weight: bold; text-align: center; line-height: 24px; padding: 30px 50px; text-transform: uppercase;"><a href="https://onmarcopolo.com/sharecast/aMm8fa0dL7Dn" target="_blank" style="color: #fff; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; text-transform: uppercase;">Marco Polo</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://give.efca.org/missionaries/abby-holloway-2376" target="_blank" style="color: #fff; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; text-transform: uppercase;">Support financially</a></td></tr>`);
   const body=`<table width="100%" border="0" cellspacing="0" cellpadding="0"><tbody><tr style="background-color: #fff;"><td style="padding: 50px 0px;">
 <table width="700" border="0" cellspacing="0" cellpadding="0" align="center"><tbody>
 <tr style="line-height: 0;"><td><img src="${I.header}" alt="Abby Holloway" width="700" style="display: block;"></td></tr>
 <tr style="background-color: #fff;"><td><table width="620" border="0" cellspacing="0" cellpadding="0" align="center"><tbody>
 ${out.filter(Boolean).join('\n')}
 </tbody></table></td></tr>
-<tr><td style="font-family: 'Arial', Sans-Serif; font-size: 10px; text-align: center; color: #ceb5c8; padding: 30px;">Designed and built by Hannah Kintigh</td></tr>
+<tr><td style="font-family: 'Arial', Sans-Serif; font-size: 10px; text-align: center; color: #ceb5c8; padding: 30px;"><span style="${SP('#ceb5c8',10)}">Designed and built by Hannah Kintigh</span></td></tr>
 </tbody></table></td></tr></tbody></table>`;
   return {body,doc:`<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n<html>\n<head>\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n<title>Abby Holloway</title>\n</head>\n<body>\n${body}\n</body>\n</html>\n`};
 }
@@ -255,7 +257,7 @@ const toastEl=document.getElementById('toast');let tt;
 function toast(h){toastEl.innerHTML=h;toastEl.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('show'),6000)}
 
 async function copyRich(){const {body}=email('send'),plain=[S.t1,S.b1,S.t2,S.b2,S.t3,S.b3].join('\n\n');
-  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([body],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);return true}
+  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([`<html><head><meta charset="utf-8"></head><body><!--StartFragment-->${body}<!--EndFragment--></body></html>`],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);return true}
   catch(e){const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;width:700px';d.innerHTML=body;document.body.append(d);
     const r=document.createRange();r.selectNodeContents(d);const s=getSelection();s.removeAllRanges();s.addRange(r);let ok=false;try{ok=document.execCommand('copy')}catch(e2){}
     s.removeAllRanges();d.remove();return ok}}
